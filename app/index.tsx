@@ -47,7 +47,8 @@ export default function Index() {
 
       router.replace("/home");
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      Alert.alert("Validation", "Wrong email or password")
+      // Alert.alert("Error", error.message);
     }
   };
 
