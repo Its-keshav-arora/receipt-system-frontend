@@ -17,6 +17,7 @@ const AddCustomer = () => {
     const router = useRouter();
     // const BACKEND_URL = process.env.BACKEND_URL;
     const BACKEND_URL="https://receipt-system-zf7s.onrender.com";
+    // const BACKEND_URL="http://172.20.10.3:5000";
 
     const [name, setName] = useState('');
     const [mobile, setMobile] = useState('');
@@ -39,6 +40,8 @@ const AddCustomer = () => {
             return;
         }
 
+        console.log("url : ", BACKEND_URL);
+
         setLoading(true);
         try {
             await axios.post(`${BACKEND_URL}/api/customer/create`, {
@@ -57,6 +60,7 @@ const AddCustomer = () => {
             Alert.alert('Success', 'Customer created successfully');
             router.back();
         } catch (err) {
+            console.log(err);
             Alert.alert('Error', 'Failed to create customer');
         } finally {
             setLoading(false);

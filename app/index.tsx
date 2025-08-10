@@ -13,6 +13,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Index() {
   const BACKEND_URL = "https://receipt-system-zf7s.onrender.com"; // replace with your actual IP
+  // const BACKEND_URL="http://172.20.10.3:5000";
+  
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const router = useRouter();

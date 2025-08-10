@@ -11,6 +11,8 @@ const HomePage = () => {
   const router = useRouter();
   // const BACKEND_URL = process.env.BACKEND_URL;
   const BACKEND_URL = "https://receipt-system-zf7s.onrender.com";
+  // const BACKEND_URL = "http://172.20.10.3:5000";
+
 
   const handleLogout = async () => {
     try {
@@ -96,6 +98,43 @@ const HomePage = () => {
           <Text style={styles.icon}>➕</Text>
           <Text style={styles.text}>Add Customer</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.option, { backgroundColor: '#FF6B6B' }]}
+          onPress={async () => {
+            Alert.alert(
+              'Confirm Deletion',
+              'This will permanently delete all customers for your account. Are you sure?',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete',
+                  onPress: async () => {
+                    try {
+                      const token = await AsyncStorage.getItem('token');
+                      const res = await fetch(`${BACKEND_URL}/api/customer/deleteAll`, {
+                        method: 'DELETE',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          Authorization: `Bearer ${token}`,
+                        },
+                      });
+                      const data = await res.json();
+                      Alert.alert('Success', data.message || 'All customers deleted.');
+                    } catch (error) {
+                      console.error('Delete error:', error);
+                      Alert.alert('Error', 'Failed to delete customers.');
+                    }
+                  },
+                },
+              ]
+            );
+          }}
+        >
+          <Text style={styles.icon}>🗑️</Text>
+          <Text style={styles.text}>Delete All Customers</Text>
+        </TouchableOpacity>
+
 
         <TouchableOpacity style={[styles.option, styles.logout]} onPress={handleLogout}>
           <Text style={styles.icon}>🚪</Text>

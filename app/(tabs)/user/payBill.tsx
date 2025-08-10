@@ -9,11 +9,11 @@ import {
   StyleSheet,
   ScrollView,
   Linking,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-// import { BluetoothEscposPrinter } from 'react-native-bluetooth-escpos-printer';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import axios from 'axios';
-// import { BACKEND_URL } from '@env';
 
 type Customer = {
   _id: string;
@@ -26,8 +26,9 @@ type Customer = {
 };
 
 const Payment = () => {
-  // const BACKEND_URL = process.env.BACKEND_URL;
-  const BACKEND_URL="https://receipt-system-zf7s.onrender.com";
+  const BACKEND_URL = "https://receipt-system-zf7s.onrender.com";
+    // const BACKEND_URL="http://172.20.10.3:5000";
+
   const { customerId } = useLocalSearchParams<{ customerId: string }>();
   const router = useRouter();
 
@@ -41,7 +42,7 @@ const Payment = () => {
 
   const [amountPaid, setAmountPaid] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Cash');
-  const [address, setAddress] = useState("null");
+  const [address, setAddress] = useState("");
 
   const paymentMethods = ['Cash', 'GPay', 'PhonePe', 'Paytm', 'Other'];
 
@@ -51,10 +52,7 @@ const Payment = () => {
 
   const fetchCustomer = async () => {
     try {
-      const { data } = await axios.get(
-        `${BACKEND_URL}/api/customer/${customerId}`,
-      );
-      console.log(data.customer);
+      const { data } = await axios.get(`${BACKEND_URL}/api/customer/${customerId}`);
       setCustomer(data.customer);
       setAddress(data.customer.address);
     } catch (err) {
@@ -87,7 +85,14 @@ const Payment = () => {
               });
 
               const { newBalance, date, time } = response.data;
-              const { whatsappLink, smsLink } = generateReceipt(customer?.name, amountPaid, paymentMethod, date, time, newBalance);
+              const { whatsappLink, smsLink } = generateReceipt(
+                customer?.name,
+                amountPaid,
+                paymentMethod,
+                date,
+                time,
+                String(newBalance)
+              );
               setWaLink(whatsappLink);
               setSmsLink(smsLink);
               setShowReceipt(true);
@@ -150,127 +155,139 @@ Current Outstanding : ₹${newBalance}
     );
   }
 
-  const totalBalance =
-    customer.previousBalance + customer.currentMonthPayment;
-
-
+  const totalBalance = customer.previousBalance + customer.currentMonthPayment;
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView style={styles.container}>
-        <Text style={styles.heading}>Pay Bill</Text>
-
-        <Label text="Name" />
-        <TextInput style={styles.input} value={customer.name} editable={false} />
-
-        <Label text="Mobile" />
-        <TextInput style={styles.input} value={customer.mobile} editable={false} />
-
-        <Label text="Address" />
-        <TextInput
-          style={[styles.input, { height: 60 }]}
-          value={customer.address || ''}
-          editable={false}
-          multiline
-        />
-
-        <Label text="Boxes" />
-        <TextInput
-          style={styles.input}
-          value={customer.boxNumbers.join(', ')}
-          editable={false}
-        />
-
-        <Label text="Total Balance" />
-        <TextInput
-          style={styles.input}
-          value={`₹${totalBalance}`}
-          editable={false}
-        />
-
-        <Label text="Amount Paid" />
-        <TextInput
-          style={styles.input}
-          placeholder="Enter amount"
-          keyboardType="numeric"
-          value={amountPaid}
-          onChangeText={setAmountPaid}
-        />
-
-        <Label text="Payment Method" />
-        <View style={styles.dropdown}>
-          {paymentMethods.map((method) => (
-            <TouchableOpacity
-              key={method}
-              style={[
-                styles.dropdownOption,
-                paymentMethod === method && styles.selectedOption,
-              ]}
-              onPress={() => setPaymentMethod(method)}
-            >
-              <Text
-                style={[
-                  styles.optionText,
-                  paymentMethod === method && { color: '#fff' },
-                ]}
-              >
-                {method}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <TouchableOpacity
-          style={styles.payBtn}
-          onPress={handlePayment}
-          disabled={paying}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+      >
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={{ paddingBottom: 160 }}
+          keyboardShouldPersistTaps="handled"
         >
-          {paying ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.payText}>Pay Bill</Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
+          <Text style={styles.heading}>Pay Bill</Text>
+
+          <Label text="Name" />
+          <TextInput style={styles.input} value={customer.name} editable={false} />
+
+          <Label text="Mobile" />
+          <TextInput style={styles.input} value={customer.mobile} editable={false} />
+
+          <Label text="Address" />
+          <TextInput
+            style={[styles.input, { height: 60 }]}
+            value={customer.address || ''}
+            editable={false}
+            multiline
+          />
+
+          <Label text="Boxes" />
+          <TextInput
+            style={styles.input}
+            value={customer.boxNumbers.join(', ')}
+            editable={false}
+          />
+
+          <Label text="Total Balance" />
+          <TextInput
+            style={styles.input}
+            value={`₹${totalBalance}`}
+            editable={false}
+          />
+
+          <Label text="Amount Paid" />
+          <TextInput
+            style={styles.input}
+            placeholder="Enter amount"
+            keyboardType="numeric"
+            value={amountPaid}
+            onChangeText={setAmountPaid}
+          />
+
+          <Label text="Payment Method" />
+          <View style={styles.dropdown}>
+            {paymentMethods.map((method) => (
+              <TouchableOpacity
+                key={method}
+                style={[
+                  styles.dropdownOption,
+                  paymentMethod === method && styles.selectedOption,
+                ]}
+                onPress={() => setPaymentMethod(method)}
+              >
+                <Text
+                  style={[
+                    styles.optionText,
+                    paymentMethod === method && { color: '#fff' },
+                  ]}
+                >
+                  {method}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <TouchableOpacity
+            style={styles.payBtn}
+            onPress={handlePayment}
+            disabled={paying}
+          >
+            {paying ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.payText}>Pay Bill</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {showReceipt && (
         <View style={styles.overlay}>
-          <View style={styles.receiptContainer}>
-
-            {/* Close Button (✕) */}
-            <TouchableOpacity
-              onPress={() => setShowReceipt(false)}
-              style={styles.closeIcon}
-            >
-              <Text style={{ fontSize: 20, color: '#000' }}>✕</Text>
-            </TouchableOpacity>
-
-            {/* Header */}
-            <Text style={styles.receiptHeader}>🧾 Receipt Preview</Text>
-
-            {/* Scrollable Receipt Text */}
-            <ScrollView style={styles.receiptBox}>
-              <Text style={styles.receiptText}>{receiptText}</Text>
-            </ScrollView>
-
-            {/* Action Buttons */}
-            <View style={styles.actionRow}>
-              <TouchableOpacity onPress={() => console.log("print")} style={styles.actionBtn}>
-                <Text style={styles.actionBtnText}>Print</Text>
+          {/* Make entire modal scrollable on small screens */}
+          <ScrollView
+            style={{ flex: 1, width: '100%' }}
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 16 }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.receiptContainer}>
+              {/* Close Button (✕) */}
+              <TouchableOpacity
+                onPress={() => setShowReceipt(false)}
+                style={styles.closeIcon}
+              >
+                <Text style={{ fontSize: 20, color: '#000' }}>✕</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => Linking.openURL(waLink)} style={styles.actionBtn}>
-                <Text style={styles.actionBtnText}>WhatsApp</Text>
-              </TouchableOpacity>
+              {/* Header */}
+              <Text style={styles.receiptHeader}>🧾 Receipt Preview</Text>
 
-              <TouchableOpacity onPress={() => Linking.openURL(smsLink)} style={styles.actionBtn}>
-                <Text style={styles.actionBtnText}>SMS</Text>
-              </TouchableOpacity>
+              {/* Scrollable Receipt Text */}
+              <ScrollView style={styles.receiptBox} keyboardShouldPersistTaps="handled">
+                <Text style={styles.receiptText}>{receiptText}</Text>
+              </ScrollView>
+
+              {/* Action Buttons */}
+              <View style={styles.actionRow}>
+                <TouchableOpacity onPress={() => console.log("print")} style={styles.actionBtn}>
+                  <Text style={styles.actionBtnText}>Print</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={() => Linking.openURL(waLink)} style={styles.actionBtn}>
+                  <Text style={styles.actionBtnText}>WhatsApp</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={() => Linking.openURL(smsLink)} style={styles.actionBtn}>
+                  <Text style={styles.actionBtnText}>SMS</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          </ScrollView>
         </View>
       )}
-
     </View>
   );
 };
@@ -335,53 +352,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
-  // overlay: {
-  //   position: 'absolute',
-  //   top: 0,
-  //   left: 0,
-  //   right: 0,
-  //   bottom: 0,
-  //   backgroundColor: 'rgba(0,0,0,0.5)',
-  //   justifyContent: 'center',
-  //   alignItems: 'center',
-  //   zIndex: 1000,
-  // },
-  // receiptContainer: {
-  //   width: '90%',
-  //   justifyContent: 'center',
-  //   alignItems: 'center',
-  //   maxHeight: '80%',
-  //   backgroundColor: '#fff',
-  //   borderRadius: 12,
-  //   padding: 20,
-  //   elevation: 6,
-  //   shadowColor: '#000',
-  //   shadowOpacity: 0.2,
-  //   shadowRadius: 6,
-  //   shadowOffset: { width: 0, height: 2 },
-  // },
-  // receiptHeader: {
-  //   fontSize: 18,
-  //   fontWeight: 'bold',
-  //   textAlign: 'center',
-  //   marginBottom: 10,
-  // },
-  // receiptBox: {
-  //   maxHeight: '80%',
-  //   padding: 10,
-  // },
-  // receiptText: {
-  //   fontFamily: 'monospace',
-  //   fontSize: 14,
-  //   color: '#333',
-  // },
-  closeReceiptBtn: {
-    backgroundColor: '#1A73E8',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
-  },
+
+  // Overlay + Receipt Modal (now scroll-friendly)
   overlay: {
     position: 'absolute',
     top: 0,
@@ -395,7 +367,8 @@ const styles = StyleSheet.create({
   },
 
   receiptContainer: {
-    width: '90%',
+    width: '100%',
+    maxWidth: 520,
     backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
@@ -411,14 +384,15 @@ const styles = StyleSheet.create({
   },
 
   receiptBox: {
-    maxHeight: 250,
+    maxHeight: 300,
     marginBottom: 16,
   },
 
   receiptText: {
-    fontFamily: 'monospace',
+    fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace' }),
     fontSize: 14,
     lineHeight: 22,
+    color: '#333',
   },
 
   closeIcon: {
@@ -448,5 +422,4 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
-
 });

@@ -34,6 +34,8 @@ type Customer = {
 
 const CustomerDetail = () => {
   const BACKEND_URL = 'https://receipt-system-zf7s.onrender.com';
+    // const BACKEND_URL="http://172.20.10.3:5000";
+
   const { customerId } = useLocalSearchParams<{ customerId: string }>();
   const router = useRouter();
 

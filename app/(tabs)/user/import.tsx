@@ -18,6 +18,7 @@ interface CustomerRow {
 const ImportPage = () => {
     // const BACKEND_URL = process.env.BACKEND_URL;
     const BACKEND_URL="https://receipt-system-zf7s.onrender.com";
+    // const BACKEND_URL = "http://172.20.10.3:5000";
     const [fileData, setFileData] = useState<CustomerRow[] | null>(null);
     const {token} = useToken();
 
@@ -31,6 +32,7 @@ const ImportPage = () => {
 
         console.log("This is the file data");
         console.log(fileData);
+        console.log("url " , `${BACKEND_URL}/api/import`);
 
         try {
             const res = await fetch(`${BACKEND_URL}/api/import`, {
