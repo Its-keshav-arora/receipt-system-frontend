@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "receipt-system-frontend",
-    "slug": "receipt-system-frontend",
+    "name": "FastX - Receipt System",
+    "slug": "FastX - Receipt System",
+    "description":"This is the smart receipt system made for your businesses",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
