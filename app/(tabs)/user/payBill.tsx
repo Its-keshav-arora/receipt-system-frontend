@@ -27,7 +27,7 @@ type Customer = {
 
 const Payment = () => {
   const BACKEND_URL = "https://receipt-system-zf7s.onrender.com";
-    // const BACKEND_URL="http://172.20.10.2:5000";
+  // const BACKEND_URL="http://172.20.10.2:5000";
 
   const { customerId } = useLocalSearchParams<{ customerId: string }>();
   const router = useRouter();
@@ -85,13 +85,17 @@ const Payment = () => {
               });
 
               const { newBalance, date, time } = response.data;
+              console.log("This is customer : ", customer);
+
               const { whatsappLink, smsLink } = generateReceipt(
                 customer?.name,
                 amountPaid,
                 paymentMethod,
                 date,
                 time,
-                String(newBalance)
+                String(newBalance),
+                // customer?.address,
+                customer?.boxNumbers // <-- pass array here
               );
               setWaLink(whatsappLink);
               setSmsLink(smsLink);
@@ -113,8 +117,10 @@ const Payment = () => {
     method: string,
     date: string,
     time: string,
-    newBalance: string
+    newBalance: string,
+    boxNumbers?: string[]
   ) => {
+    const boxes = boxNumbers && boxNumbers.length > 0 ? boxNumbers.join(", ") : "N/A";
     const receipt = `
 
       Fastway/Netplus Cable
@@ -127,7 +133,7 @@ Name        : ${name}
 Date        : ${date}
 Time        : ${time}
 Address     : ${address}
-Box/Id      : 
+Box/Id      : ${boxes}
 Amount Paid : ₹${Number(amount).toFixed(2)}
 Method      : ${method}
 
