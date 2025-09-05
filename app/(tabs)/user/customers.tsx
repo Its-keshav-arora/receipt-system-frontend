@@ -30,15 +30,15 @@ const CustomerSearch = () => {
   // const BACKEND_URL="http://172.20.10.3:5000";
 
   const [open, setOpen] = useState(false);
-  const [searchType, setSearchType] = useState<SearchType>('box');
+  const [searchType, setSearchType] = useState<SearchType>('name');
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
 
   const [items, setItems] = useState([
+    { label: 'Name', value: 'name' },
     { label: 'Box Number', value: 'box' },
     { label: 'Mobile Number', value: 'mobile' },
-    { label: 'Name', value: 'name' },
   ]);
 
   const handleSearch = async () => {
@@ -69,7 +69,7 @@ const CustomerSearch = () => {
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.label}>Boxes: {item.boxNumbers.join(', ')}</Text>
         <Text style={styles.label}>Mobile: {item.mobile}</Text>
-        <Text style={styles.total}>Total: ₹{total}</Text>
+        <Text style={styles.total}>Total: ₹{Number(total).toFixed(2)}</Text>
 
         <View style={styles.buttonRow}>
           <TouchableOpacity

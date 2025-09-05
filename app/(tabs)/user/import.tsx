@@ -18,9 +18,10 @@ interface CustomerRow {
 const ImportPage = () => {
     // const BACKEND_URL = process.env.BACKEND_URL;
     const BACKEND_URL="https://receipt-system-zf7s.onrender.com";
-    // const BACKEND_URL = "http://172.20.10.3:5000";
+    // const BACKEND_URL = "http://172.20.10.2:5000";
     const [fileData, setFileData] = useState<CustomerRow[] | null>(null);
     const {token} = useToken();
+    console.log("I'm importing data");
 
     const handleUploadToBackend = async () => {
         const token = await AsyncStorage.getItem("token");
@@ -127,12 +128,12 @@ const ImportPage = () => {
                 <ScrollView horizontal showsHorizontalScrollIndicator>
                     <View>
                         <View style={styles.tableHeader}>
-                            <Text style={styles.cell}>Name</Text>
-                            <Text style={styles.cell}>Customer Box</Text>
-                            <Text style={styles.cell}>Mobile</Text>
-                            <Text style={styles.cell}>Address</Text>
-                            <Text style={styles.cell}>Balance</Text>
-                            <Text style={styles.cell}>This Month</Text>
+                            <Text style={styles.cell}>name</Text>
+                            <Text style={styles.cell}>box</Text>
+                            <Text style={styles.cell}>mobile</Text>
+                            <Text style={styles.cell}>balance</Text>
+                            <Text style={styles.cell}>curr</Text>
+                            <Text style={styles.cell}>address</Text>
                         </View>
 
                         {fileData && fileData.map((row, index) => (

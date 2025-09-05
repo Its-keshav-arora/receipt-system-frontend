@@ -15,6 +15,7 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 const BACKEND_URL = 'https://receipt-system-zf7s.onrender.com';
+// const BACKEND_URL="http://172.20.10.2:5000";
 
 const CollectionHistory = () => {
     const [fromDate, setFromDate] = useState<Date | null>(null);

@@ -200,10 +200,10 @@ const CustomerDetail = () => {
 
         {/* Payments */}
         <Text style={styles.subheading}>Payments</Text>
-        <Text style={styles.paymentText}>Previous Balance: ₹{customer.previousBalance}</Text>
-        <Text style={styles.paymentText}>Current Month: ₹{customer.currentMonthPayment}</Text>
+        <Text style={styles.paymentText}>Previous Balance: ₹{Number(customer.previousBalance).toFixed(2)}</Text>
+        <Text style={styles.paymentText}>Current Month: ₹{Number(customer.currentMonthPayment).toFixed(2)}</Text>
         <Text style={styles.paymentText}>
-          Total Balance ₹{customer.currentMonthPayment + customer.previousBalance}
+          Total Balance ₹{Number(customer.currentMonthPayment + customer.previousBalance).toFixed(2)}
         </Text>
 
         {/* History Button */}

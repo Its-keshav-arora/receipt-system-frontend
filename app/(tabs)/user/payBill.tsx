@@ -27,7 +27,7 @@ type Customer = {
 
 const Payment = () => {
   const BACKEND_URL = "https://receipt-system-zf7s.onrender.com";
-    // const BACKEND_URL="http://172.20.10.3:5000";
+    // const BACKEND_URL="http://172.20.10.2:5000";
 
   const { customerId } = useLocalSearchParams<{ customerId: string }>();
   const router = useRouter();
@@ -117,8 +117,8 @@ const Payment = () => {
   ) => {
     const receipt = `
 
-      Fastway Cable Network
-Complaint No : 9356216091
+      Fastway/Netplus Cable
+Complaint No : 9217092170/7087570875
 
 ******************************
                  RECEIPT
@@ -127,12 +127,12 @@ Name        : ${name}
 Date        : ${date}
 Time        : ${time}
 Address     : ${address}
-
-Amount Paid : ₹${amount}
+Box/Id      : 
+Amount Paid : ₹${Number(amount).toFixed(2)}
 Method      : ${method}
 
 ******************************
-Current Outstanding : ₹${newBalance}
+Current Outstanding : ₹${Number(newBalance).toFixed(2)}
 ******************************
 
              THANK YOU
