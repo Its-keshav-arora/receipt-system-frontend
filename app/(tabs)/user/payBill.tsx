@@ -123,7 +123,7 @@ const Payment = () => {
     const boxes = boxNumbers && boxNumbers.length > 0 ? boxNumbers.join(", ") : "N/A";
     const receipt = `
 
-      Fastway/Netplus Cable
+      FW / net+ Cable
 Complaint No : 9217092170/7087570875
 
 ******************************
