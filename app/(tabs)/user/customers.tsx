@@ -27,8 +27,8 @@ type Customer = {
 
 const CustomerSearch = () => {
   // const BACKEND_URL = process.env.BACKEND_URL;
-  // const BACKEND_URL="https://receipt-system-zf7s.onrender.com";
-  const BACKEND_URL = "http://172.20.10.2:5000";
+  const BACKEND_URL="https://receipt-system-zf7s.onrender.com";
+  // const BACKEND_URL = "http://172.20.10.2:5000";
 
   const [open, setOpen] = useState(false);
   const [searchType, setSearchType] = useState<SearchType>('name');
