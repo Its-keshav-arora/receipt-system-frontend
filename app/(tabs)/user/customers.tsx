@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -26,8 +27,8 @@ type Customer = {
 
 const CustomerSearch = () => {
   // const BACKEND_URL = process.env.BACKEND_URL;
-  const BACKEND_URL="https://receipt-system-zf7s.onrender.com";
-  // const BACKEND_URL="http://172.20.10.3:5000";
+  // const BACKEND_URL="https://receipt-system-zf7s.onrender.com";
+  const BACKEND_URL = "http://172.20.10.2:5000";
 
   const [open, setOpen] = useState(false);
   const [searchType, setSearchType] = useState<SearchType>('name');
@@ -46,10 +47,14 @@ const CustomerSearch = () => {
     setLoading(true);
 
     try {
+      const token = await AsyncStorage.getItem("token");
       const res = await axios.get(
         `${BACKEND_URL}/api/customer/search`,
         {
           params: { type: searchType, query },
+          headers: {
+            Authorization: `Bearer ${token}`,  // make sure "Bearer " prefix is included
+          },
         },
       );
       setCustomers(res.data.customers || []);

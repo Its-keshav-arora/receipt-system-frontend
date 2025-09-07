@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import axios from 'axios';
-import { formatDate } from '@/utils/formatDate';
 
 type Payment = {
   date: string;
@@ -160,7 +159,7 @@ Complaint : 7087570875
                  RECEIPT
 ---------------------------
 Name        : ${customer.name}
-Date        : ${formatDate(entry.date)}
+Date        : ${(entry.date)}
 Time        : ${entry.time}
 Address     : ${customer.address || 'N/A'}
 Box/Id      : ${boxes}
@@ -278,7 +277,7 @@ Current Outstanding : ₹${entry.balance}
                 [...customer.history].reverse().map((entry, index) => (
                   <View key={index} style={styles.historyItem}>
                     <Text style={styles.historyText}>
-                      ₹{entry.amount} on {formatDate(entry.date)} at {entry.time} via {entry.method}
+                      ₹{entry.amount} on {(entry.date)} at {entry.time} via {entry.method}
                     </Text>
                     <TouchableOpacity
                       style={styles.receiptBtn}

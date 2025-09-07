@@ -14,8 +14,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
-const BACKEND_URL = 'https://receipt-system-zf7s.onrender.com';
-// const BACKEND_URL="http://172.20.10.2:5000";
+// const BACKEND_URL = 'https://receipt-system-zf7s.onrender.com';
+const BACKEND_URL = "http://172.20.10.2:5000";
 
 const CollectionHistory = () => {
     const [fromDate, setFromDate] = useState<Date | null>(null);
@@ -24,11 +24,18 @@ const CollectionHistory = () => {
     const [loading, setLoading] = useState(false);
     const [results, setResults] = useState<any[]>([]);
 
+    // ✅ format date to YYYY-MM-DD for API
+    const formatForApi = (date: Date) => {
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    };
+
     const handleFetch = async () => {
         if (!fromDate || !toDate) {
             Alert.alert('Select dates', 'Please select both From and To dates');
             return;
         }
+        console.log("this is from : ", fromDate);
+        console.log("this is to : ", toDate);
 
         try {
             setLoading(true);
@@ -36,13 +43,12 @@ const CollectionHistory = () => {
             const res = await axios.get(`${BACKEND_URL}/api/customer/history`, {
                 headers: { Authorization: `Bearer ${token}` },
                 params: {
-                    from: fromDate.toISOString(),
-                    to: toDate.toISOString(),
+                    from: formatForApi(fromDate), // ✅ send YYYY-MM-DD (local)
+                    to: formatForApi(toDate),
                 },
             });
 
             console.log("response : ", res.data.payments);
-
             setResults(res.data.payments || []);
         } catch (err) {
             console.error(err);
@@ -57,7 +63,7 @@ const CollectionHistory = () => {
 
         try {
             const token = await AsyncStorage.getItem('token');
-            const url = `${BACKEND_URL}/api/customer/history/export?from=${fromDate.toISOString()}&to=${toDate.toISOString()}`;
+            const url = `${BACKEND_URL}/api/customer/history/export?from=${formatForApi(fromDate)}&to=${formatForApi(toDate)}`;
             const fileUri = FileSystem.documentDirectory + 'CollectionHistory.xlsx';
 
             const { uri } = await FileSystem.downloadAsync(url, fileUri, {
@@ -137,14 +143,13 @@ const CollectionHistory = () => {
                         </View>
                     )}
                 />
-
             )}
         </View>
     );
 };
 
 export default CollectionHistory;
-// marginTop : 50,
+
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: '#F9FAFB', paddingTop:80 },
   title: { fontSize: 22, fontWeight: '700', textAlign: 'center', marginBottom: 40 },
