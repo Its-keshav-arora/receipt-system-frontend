@@ -123,12 +123,13 @@ const Payment = () => {
     const boxes = boxNumbers && boxNumbers.length > 0 ? boxNumbers.join(", ") : "N/A";
     const receipt = `
 
-      FW / net+ Cable
-Complaint No : 9217092170/7087570875
+      FW / Net+
+Complaint : 9217092170
+Complaint : 7087570875
 
-******************************
+---------------------------
                  RECEIPT
-******************************
+---------------------------
 Name        : ${name}
 Date        : ${date}
 Time        : ${time}
@@ -137,9 +138,9 @@ Box/Id      : ${boxes}
 Amount Paid : ₹${Number(amount).toFixed(2)}
 Method      : ${method}
 
-******************************
+---------------------------
 Current Outstanding : ₹${Number(newBalance).toFixed(2)}
-******************************
+---------------------------
 
              THANK YOU
   `;

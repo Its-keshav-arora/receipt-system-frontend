@@ -9,6 +9,8 @@ import {
   Alert,
   StyleSheet,
   Image,
+  Linking,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import axios from 'axios';
@@ -18,6 +20,7 @@ type Payment = {
   date: string;
   time: string;
   amount: number;
+  balance : number;
   method: string;
 };
 
@@ -34,7 +37,7 @@ type Customer = {
 
 const CustomerDetail = () => {
   const BACKEND_URL = 'https://receipt-system-zf7s.onrender.com';
-    // const BACKEND_URL="http://172.20.10.3:5000";
+  // const BACKEND_URL="http://172.20.10.3:5000";
 
   const { customerId } = useLocalSearchParams<{ customerId: string }>();
   const router = useRouter();
@@ -44,6 +47,12 @@ const CustomerDetail = () => {
   const [saving, setSaving] = useState(false);
   const [newBox, setNewBox] = useState('');
   const [showHistory, setShowHistory] = useState(false);
+
+  // Receipt modal states
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [receiptText, setReceiptText] = useState('');
+  const [waLink, setWaLink] = useState('');
+  const [smsLink, setSmsLink] = useState('');
 
   useEffect(() => {
     if (customerId) fetchCustomer();
@@ -99,9 +108,9 @@ const CustomerDetail = () => {
             setCustomer((prev) =>
               prev
                 ? {
-                  ...prev,
-                  boxNumbers: prev.boxNumbers.filter((b) => b !== boxNumber),
-                }
+                    ...prev,
+                    boxNumbers: prev.boxNumbers.filter((b) => b !== boxNumber),
+                  }
                 : prev
             );
           } catch {
@@ -132,6 +141,49 @@ const CustomerDetail = () => {
     ]);
   };
 
+  const generateReceipt = (
+    entry: Payment,
+  ) => {
+    if (!customer) return;
+
+    const boxes =
+      customer.boxNumbers && customer.boxNumbers.length > 0
+        ? customer.boxNumbers.join(', ')
+        : 'N/A';
+
+    const receipt = `
+      FW / Net+
+Complaint : 9217092170
+Complaint : 7087570875
+
+---------------------------
+                 RECEIPT
+---------------------------
+Name        : ${customer.name}
+Date        : ${formatDate(entry.date)}
+Time        : ${entry.time}
+Address     : ${customer.address || 'N/A'}
+Box/Id      : ${boxes}
+Amount Paid : ₹${Number(entry.amount).toFixed(2)}
+Method      : ${entry.method}
+
+---------------------------
+Current Outstanding : ₹${entry.balance}
+---------------------------
+
+             THANK YOU
+    `;
+
+    const encodedMessage = encodeURIComponent(receipt);
+    const whatsappLink = `https://wa.me/91${customer.mobile}?text=${encodedMessage}`;
+    const smsLink = `sms:91${customer.mobile}?body=${encodedMessage}`;
+
+    setReceiptText(receipt);
+    setWaLink(whatsappLink);
+    setSmsLink(smsLink);
+    setShowReceipt(true);
+  };
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -143,114 +195,161 @@ const CustomerDetail = () => {
   if (!customer) return null;
 
   return (
-    <ScrollView>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.heading}>Customer Details</Text>
-          <TouchableOpacity onPress={() => handleDeleteCustomer(customerId)} style={styles.deleteBtn}>
-            <Image source={require('@/assets/icons/delete_button.png')} style={styles.icon} />
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.label}>Name</Text>
-        <TextInput
-          style={styles.input}
-          value={customer.name}
-          onChangeText={(text) => setCustomer({ ...customer, name: text })}
-        />
-
-        <Text style={styles.label}>Mobile</Text>
-        <TextInput
-          style={styles.input}
-          keyboardType="phone-pad"
-          value={customer.mobile}
-          onChangeText={(text) => setCustomer({ ...customer, mobile: text })}
-        />
-
-        <Text style={styles.label}>Address</Text>
-        <TextInput
-          style={[styles.input, { height: 80 }]}
-          multiline
-          value={customer.address || ''}
-          onChangeText={(text) => setCustomer({ ...customer, address: text })}
-        />
-
-        {/* Boxes */}
-        <Text style={[styles.subheading, { marginTop: 20 }]}>Boxes</Text>
-        {customer.boxNumbers.map((box) => (
-          <View key={box} style={styles.boxItem}>
-            <Text style={styles.boxText}>{box}</Text>
-            <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDeleteBox(box)}>
-              <Text style={styles.deleteTxt}>✕</Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.heading}>Customer Details</Text>
+            <TouchableOpacity onPress={() => handleDeleteCustomer(customerId)} style={styles.deleteBtn}>
+              <Image source={require('@/assets/icons/delete_button.png')} style={styles.icon} />
             </TouchableOpacity>
           </View>
-        ))}
 
-        <View style={styles.addBoxRow}>
+          <Text style={styles.label}>Name</Text>
           <TextInput
-            placeholder="Add new box"
-            style={[styles.input, { flex: 1 }]}
-            value={newBox}
-            onChangeText={setNewBox}
+            style={styles.input}
+            value={customer.name}
+            onChangeText={(text) => setCustomer({ ...customer, name: text })}
           />
-          <TouchableOpacity onPress={handleAddBox} style={styles.addBtn}>
-            <Text style={styles.addTxt}>Add</Text>
+
+          <Text style={styles.label}>Mobile</Text>
+          <TextInput
+            style={styles.input}
+            keyboardType="phone-pad"
+            value={customer.mobile}
+            onChangeText={(text) => setCustomer({ ...customer, mobile: text })}
+          />
+
+          <Text style={styles.label}>Address</Text>
+          <TextInput
+            style={[styles.input, { height: 80 }]}
+            multiline
+            value={customer.address || ''}
+            onChangeText={(text) => setCustomer({ ...customer, address: text })}
+          />
+
+          {/* Boxes */}
+          <Text style={[styles.subheading, { marginTop: 20 }]}>Boxes</Text>
+          {customer.boxNumbers.map((box) => (
+            <View key={box} style={styles.boxItem}>
+              <Text style={styles.boxText}>{box}</Text>
+              <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDeleteBox(box)}>
+                <Text style={styles.deleteTxt}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+
+          <View style={styles.addBoxRow}>
+            <TextInput
+              placeholder="Add new box"
+              style={[styles.input, { flex: 1 }]}
+              value={newBox}
+              onChangeText={setNewBox}
+            />
+            <TouchableOpacity onPress={handleAddBox} style={styles.addBtn}>
+              <Text style={styles.addTxt}>Add</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Payments */}
+          <Text style={styles.subheading}>Payments</Text>
+          <Text style={styles.paymentText}>Previous Balance: ₹{Number(customer.previousBalance).toFixed(2)}</Text>
+          <Text style={styles.paymentText}>Current Month: ₹{Number(customer.currentMonthPayment).toFixed(2)}</Text>
+          <Text style={styles.paymentText}>
+            Total Balance ₹{Number(customer.currentMonthPayment + customer.previousBalance).toFixed(2)}
+          </Text>
+
+          {/* History Button */}
+          <TouchableOpacity
+            style={[styles.payBtn, { marginTop: 12, backgroundColor: '#F9AB00' }]}
+            onPress={() => setShowHistory(!showHistory)}
+          >
+            <Text style={styles.payTxt}>
+              {showHistory ? 'Hide History' : 'Show History'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* History Section */}
+          {showHistory && (
+            <View style={styles.historyContainer}>
+              {customer.history.length === 0 ? (
+                <Text style={styles.noHistoryText}>No payment history available.</Text>
+              ) : (
+                [...customer.history].reverse().map((entry, index) => (
+                  <View key={index} style={styles.historyItem}>
+                    <Text style={styles.historyText}>
+                      ₹{entry.amount} on {formatDate(entry.date)} at {entry.time} via {entry.method}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.receiptBtn}
+                      onPress={() => generateReceipt(entry)}
+                    >
+                      <Text style={styles.receiptBtnTxt}>Receipt</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))
+              )}
+            </View>
+          )}
+
+          {/* Save Button */}
+          <TouchableOpacity onPress={saveCustomer} style={styles.saveBtn}>
+            {saving ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.saveTxt}>Save Changes</Text>
+            )}
           </TouchableOpacity>
         </View>
+      </ScrollView>
 
-        {/* Payments */}
-        <Text style={styles.subheading}>Payments</Text>
-        <Text style={styles.paymentText}>Previous Balance: ₹{Number(customer.previousBalance).toFixed(2)}</Text>
-        <Text style={styles.paymentText}>Current Month: ₹{Number(customer.currentMonthPayment).toFixed(2)}</Text>
-        <Text style={styles.paymentText}>
-          Total Balance ₹{Number(customer.currentMonthPayment + customer.previousBalance).toFixed(2)}
-        </Text>
+      {/* Receipt Modal */}
+      {showReceipt && (
+        <View style={styles.overlay}>
+          <ScrollView
+            style={{ flex: 1, width: '100%' }}
+            contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 16 }}
+          >
+            <View style={styles.receiptContainer}>
+              <TouchableOpacity
+                onPress={() => setShowReceipt(false)}
+                style={styles.closeIcon}
+              >
+                <Text style={{ fontSize: 20, color: '#000' }}>✕</Text>
+              </TouchableOpacity>
 
-        {/* History Button */}
-        <TouchableOpacity
-          style={[styles.payBtn, { marginTop: 12, backgroundColor: '#F9AB00' }]}
-          onPress={() => setShowHistory(!showHistory)}
-        >
-          <Text style={styles.payTxt}>
-            {showHistory ? 'Hide History' : 'Show History'}
-          </Text>
-        </TouchableOpacity>
+              <Text style={styles.receiptHeader}>🧾 Receipt Preview</Text>
 
-        {/* History Section */}
-        {showHistory && (
-          <View style={styles.historyContainer}>
-            {customer.history.length === 0 ? (
-              <Text style={styles.noHistoryText}>No payment history available.</Text>
-            ) : (
-              [...customer.history].reverse().map((entry, index) => (
-                <View key={index} style={styles.historyItem}>
-                  <Text style={styles.historyText}>
-                    ₹{entry.amount} on {formatDate(entry.date)} at {entry.time} via {entry.method}
-                  </Text>
-                </View>
-              ))
-            )}
-          </View>
-        )}
+              <ScrollView style={styles.receiptBox}>
+                <Text style={styles.receiptText}>{receiptText}</Text>
+              </ScrollView>
 
-        {/* Save Button */}
-        <TouchableOpacity onPress={saveCustomer} style={styles.saveBtn}>
-          {saving ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.saveTxt}>Save Changes</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+              <View style={styles.actionRow}>
+                <TouchableOpacity onPress={() => console.log("print")} style={styles.actionBtn}>
+                  <Text style={styles.actionBtnText}>Print</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={() => Linking.openURL(waLink)} style={styles.actionBtn}>
+                  <Text style={styles.actionBtnText}>WhatsApp</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={() => Linking.openURL(smsLink)} style={styles.actionBtn}>
+                  <Text style={styles.actionBtnText}>SMS</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
+        </View>
+      )}
+    </View>
   );
 };
 
 export default CustomerDetail;
 
-// ,paddingTop : 80,
+// Styles
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#F4F6F8', position: 'relative',paddingTop : 60, },
+  container: { flex: 1, padding: 16, backgroundColor: '#F4F6F8', position: 'relative', paddingTop: 60 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   subheading: { fontSize: 18, fontWeight: '600', marginVertical: 12 },
   label: { fontSize: 14, marginTop: 12, color: '#333' },
@@ -345,14 +444,91 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderBottomWidth: 1,
     borderColor: '#eee',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   historyText: {
     fontSize: 15,
     color: '#333',
+    flex: 1,
   },
   noHistoryText: {
     fontSize: 15,
     color: '#888',
     fontStyle: 'italic',
+  },
+  receiptBtn: {
+    backgroundColor: '#1A73E8',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  receiptBtnTxt: { color: '#fff', fontWeight: '600', fontSize: 13 },
+
+  // Receipt modal styles
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  receiptContainer: {
+    width: '100%',
+    maxWidth: 520,
+    backgroundColor: '#fff',
+    display:"flex",
+    justifyContent:"center",
+    alignItems:'center',
+    borderRadius: 12,
+    padding: 16,
+    elevation: 5,
+    position: 'relative',
+  },  
+  receiptHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  receiptBox: {
+    maxHeight: 300,
+    marginBottom: 16,
+  },
+  receiptText: {
+    fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace' }),
+    fontSize: 14,
+    lineHeight: 22,
+    color: '#333',
+  },
+  closeIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 10,
+    padding: 6,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  actionBtn: {
+    flex: 1,
+    backgroundColor: '#1A73E8',
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginHorizontal: 5,
+    alignItems: 'center',
+  },
+  actionBtnText: {
+    color: '#fff',
+    fontWeight: '600',
   },
 });
