@@ -13,7 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Index() {
   const BACKEND_URL = "https://receipt-system-zf7s.onrender.com"; // replace with your actual IP
-  // const BACKEND_URL="http://172.20.10.3:5000";
+  // const BACKEND_URL="http://172.20.10.2:5000";
   
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
@@ -40,8 +40,10 @@ export default function Index() {
       });
 
       const data = await response.json();
-      console.log(data);
-      await AsyncStorage.setItem("token", data.token);
+      console.log("data : ", data);
+      await AsyncStorage.setItem("token", data.token); 
+      await AsyncStorage.setItem('name', data.user.name);
+      await AsyncStorage.setItem('mobile', data.user.mobile);
 
       if (!response.ok) {
         throw new Error(data.message || "Something went wrong");

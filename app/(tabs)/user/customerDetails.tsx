@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Payment = {
   date: string;
@@ -140,7 +141,7 @@ const CustomerDetail = () => {
     ]);
   };
 
-  const generateReceipt = (
+  const generateReceipt = async (
     entry: Payment,
   ) => {
     if (!customer) return;
@@ -150,10 +151,12 @@ const CustomerDetail = () => {
         ? customer.boxNumbers.join(', ')
         : 'N/A';
 
+        const receiptName = await AsyncStorage.getItem('name');
+        const receiptNumber = await AsyncStorage.getItem('mobile');
+
     const receipt = `
-      FW / Net+
-Complaint : 9217092170
-Complaint : 7087570875
+      ${receiptName}
+Complaint : ${receiptNumber}
 
 ---------------------------
                  RECEIPT

@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Customer = {
   _id: string;
@@ -87,16 +88,16 @@ const Payment = () => {
               const { newBalance, date, time } = response.data;
               console.log("This is customer : ", customer);
 
-              const { whatsappLink, smsLink } = generateReceipt(
-                customer?.name,
+              const { whatsappLink, smsLink } = await generateReceipt(
+                customer?.name || "",
                 amountPaid,
                 paymentMethod,
                 date,
                 time,
                 String(newBalance),
-                // customer?.address,
-                customer?.boxNumbers // <-- pass array here
+                customer?.boxNumbers
               );
+
               setWaLink(whatsappLink);
               setSmsLink(smsLink);
               setShowReceipt(true);
@@ -111,21 +112,23 @@ const Payment = () => {
     );
   };
 
-  const generateReceipt = (
-    name: any,
+  const generateReceipt = async (
+    name: string,
     amount: string,
     method: string,
     date: string,
     time: string,
     newBalance: string,
     boxNumbers?: string[]
-  ) => {
+  ): Promise<{ receipt: string; whatsappLink: string; smsLink: string }> => {
+    const receiptName = await AsyncStorage.getItem('name');
+    const receiptNumber = await AsyncStorage.getItem('mobile');
+
     const boxes = boxNumbers && boxNumbers.length > 0 ? boxNumbers.join(", ") : "N/A";
     const receipt = `
 
-      FW / Net+
-Complaint : 9217092170
-Complaint : 7087570875
+      ${receiptName || "FW / Net+"}
+Complaint : ${receiptNumber || "9217092170"}
 
 ---------------------------
                  RECEIPT
@@ -148,6 +151,7 @@ Current Outstanding : ₹${Number(newBalance).toFixed(2)}
     const encodedMessage = encodeURIComponent(receipt);
     const whatsappLink = `https://wa.me/91${customer?.mobile}?text=${encodedMessage}`;
     const smsLink = `sms:91${customer?.mobile}?body=${encodedMessage}`;
+
     setReceiptText(receipt);
     setShowReceipt(true);
 
@@ -254,14 +258,12 @@ Current Outstanding : ₹${Number(newBalance).toFixed(2)}
 
       {showReceipt && (
         <View style={styles.overlay}>
-          {/* Make entire modal scrollable on small screens */}
           <ScrollView
             style={{ flex: 1, width: '100%' }}
             contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 16 }}
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.receiptContainer}>
-              {/* Close Button (✕) */}
               <TouchableOpacity
                 onPress={() => setShowReceipt(false)}
                 style={styles.closeIcon}
@@ -269,15 +271,12 @@ Current Outstanding : ₹${Number(newBalance).toFixed(2)}
                 <Text style={{ fontSize: 20, color: '#000' }}>✕</Text>
               </TouchableOpacity>
 
-              {/* Header */}
               <Text style={styles.receiptHeader}>🧾 Receipt Preview</Text>
 
-              {/* Scrollable Receipt Text */}
               <ScrollView style={styles.receiptBox} keyboardShouldPersistTaps="handled">
                 <Text style={styles.receiptText}>{receiptText}</Text>
               </ScrollView>
 
-              {/* Action Buttons */}
               <View style={styles.actionRow}>
                 <TouchableOpacity onPress={() => console.log("print")} style={styles.actionBtn}>
                   <Text style={styles.actionBtnText}>Print</Text>
@@ -359,8 +358,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
   },
-
-  // Overlay + Receipt Modal (now scroll-friendly)
   overlay: {
     position: 'absolute',
     top: 0,
@@ -372,7 +369,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 999,
   },
-
   receiptContainer: {
     width: '100%',
     maxWidth: 520,
@@ -382,26 +378,22 @@ const styles = StyleSheet.create({
     elevation: 5,
     position: 'relative',
   },
-
   receiptHeader: {
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 10,
   },
-
   receiptBox: {
     maxHeight: 300,
     marginBottom: 16,
   },
-
   receiptText: {
     fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace' }),
     fontSize: 14,
     lineHeight: 22,
     color: '#333',
   },
-
   closeIcon: {
     position: 'absolute',
     top: 10,
@@ -409,13 +401,11 @@ const styles = StyleSheet.create({
     zIndex: 10,
     padding: 6,
   },
-
   actionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 10,
   },
-
   actionBtn: {
     flex: 1,
     backgroundColor: '#1A73E8',
@@ -424,7 +414,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     alignItems: 'center',
   },
-
   actionBtnText: {
     color: '#fff',
     fontWeight: '600',

@@ -10,6 +10,8 @@ const HomePage = () => {
     try {
       await AsyncStorage.removeItem('token');
       await AsyncStorage.removeItem('user');
+      await AsyncStorage.removeItem('email');
+      await AsyncStorage.removeItem('mobile');
 
       Alert.alert("Logged Out", "You have been logged out.");
       router.replace('/');
